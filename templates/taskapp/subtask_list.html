@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}— Sub Tasks{% endblock %}
+{% block topbar_title %}Sub Tasks{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <h1>Sub Tasks</h1>
+    <div class="sub">{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }} total</div>
+  </div>
+  <a href="{% url 'subtask-add' %}" class="btn-hng btn-hng-primary">
+    <i class="bi bi-plus-lg"></i> Add Sub Task
+  </a>
+</div>
+
+<form method="get" class="search-bar fade-up">
+  <div class="search-input-wrap">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="Search sub tasks..." class="hng-input" />
+  </div>
+  <select name="status" class="hng-select">
+    <option value="">All Statuses</option>
+    {% for val, label in status_choices %}
+    <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-hng btn-hng-ghost"><i class="bi bi-funnel"></i> Filter</button>
+  {% if q or current_status %}
+  <a href="{% url 'subtask-list' %}" class="btn-hng btn-hng-ghost"><i class="bi bi-x"></i> Clear</a>
+  {% endif %}
+</form>
+
+<div class="hng-card fade-up">
+  <table class="hng-table">
+    <thead>
+      <tr>
+        <th><a href="?{% for k, v in request.GET.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=title">Title <i class="bi bi-arrow-down-up"></i></a></th>
+        <th>Status</th>
+        <th><a href="?{% for k, v in request.GET.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=parent_task__title">Parent Task <i class="bi bi-arrow-down-up"></i></a></th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subtask in subtasks %}
+      <tr>
+        <td style="font-weight:600;">{{ subtask.title|truncatechars:60 }}</td>
+        <td>
+          <span class="badge-status
+            {% if subtask.status == 'Completed' %}badge-completed
+            {% elif subtask.status == 'In Progress' %}badge-inprogress
+            {% else %}badge-pending{% endif %}">
+            {{ subtask.status }}
+          </span>
+        </td>
+        <td style="font-size:.8rem;color:var(--muted);">{{ subtask.parent_task.title|truncatechars:45 }}</td>
+        <td>
+          <div style="display:flex;gap:.4rem;">
+            <a href="{% url 'subtask-edit' subtask.pk %}" class="btn-hng btn-hng-ghost btn-hng-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'subtask-delete' subtask.pk %}" class="btn-hng btn-hng-danger btn-hng-sm"><i class="bi bi-trash"></i></a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:3rem;color:var(--muted);">
+          No sub tasks found. <a href="{% url 'subtask-add' %}" style="color:var(--accent);">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}
