@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}— Tasks{% endblock %}
+{% block topbar_title %}Tasks{% endblock %}
+
+{% block content %}
+<style>
+  .sort-link { font-family: var(--font-mono); font-size: .7rem; text-decoration: none; color: var(--muted); }
+  .sort-link.sort-active { color: var(--accent); }
+</style>
+
+<div class="page-header fade-up">
+  <div>
+    <h1>Tasks</h1>
+    <div class="sub">{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }} total</div>
+  </div>
+  <a href="{% url 'task-add' %}" class="btn-hng btn-hng-primary">
+    <i class="bi bi-plus-lg"></i> Add Task
+  </a>
+</div>
+
+<!-- Search & Filters -->
+<form method="get" class="search-bar fade-up">
+  <div class="search-input-wrap">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="Search tasks..." class="hng-input" />
+  </div>
+  <select name="status" class="hng-select">
+    <option value="">All Statuses</option>
+    {% for val, label in status_choices %}
+    <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="priority" class="hng-select">
+    <option value="">All Priorities</option>
+    {% for p in priorities %}
+    <option value="{{ p.id }}" {% if current_priority == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="category" class="hng-select">
+    <option value="">All Categories</option>
+    {% for c in categories %}
+    <option value="{{ c.id }}" {% if current_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-hng btn-hng-ghost">
+    <i class="bi bi-funnel"></i> Filter
+  </button>
+  {% if q or current_status or current_priority or current_category %}
+  <a href="{% url 'task-list' %}" class="btn-hng btn-hng-ghost">
+    <i class="bi bi-x"></i> Clear
+  </a>
+  {% endif %}
+</form>
+
+<div class="hng-card fade-up">
+  <!-- Sort bar -->
+  <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;align-self:center;">Sort:</span>
+    {% for val, label in sort_options %}
+    <a href="?{% for k, v in request.GET.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort={{ val }}" class="sort-link {% if current_sort == val %}sort-active{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <table class="hng-table">
+    <thead>
+      <tr>
+        <th><a href="?{% for k, v in request.GET.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=title">Title <i class="bi bi-arrow-down-up"></i></a></th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th><a href="?{% for k, v in request.GET.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=deadline">Deadline <i class="bi bi-arrow-down-up"></i></a></th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr>
+        <td>
+          <div style="font-weight:600;max-width:300px;">{{ task.title|truncatechars:55 }}</div>
+          {% if task.description %}
+          <div style="font-size:.75rem;color:var(--muted);margin-top:.15rem;">{{ task.description|truncatechars:60 }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge-status
+            {% if task.status == 'Completed' %}badge-completed
+            {% elif task.status == 'In Progress' %}badge-inprogress
+            {% else %}badge-pending{% endif %}">
+            {{ task.status }}
+          </span>
+        </td>
+        <td style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);">
+          {{ task.priority|default:"—" }}
+        </td>
+        <td style="font-size:.8rem;color:var(--muted);">{{ task.category|default:"—" }}</td>
+        <td style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);">
+          {% if task.deadline %}{{ task.deadline|date:"M d, Y H:i" }}{% else %}—{% endif %}
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;">
+            <a href="{% url 'task-edit' task.pk %}" class="btn-hng btn-hng-ghost btn-hng-sm">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'task-delete' task.pk %}" class="btn-hng btn-hng-danger btn-hng-sm">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:3rem;color:var(--muted);">
+          <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+          No tasks found.
+          <a href="{% url 'task-add' %}" style="color:var(--accent);">Add the first one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "includes/pagination.html" %}
+{% endblock %}

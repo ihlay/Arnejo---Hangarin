@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}— Delete {{ entity_name }}{% endblock %}
+{% block topbar_title %}Delete {{ entity_name }}{% endblock %}
+
+{% block content %}
+<div class="delete-box fade-up">
+  <div class="del-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+  <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.5rem;">Delete {{ entity_name }}</h2>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:1.5rem;">
+    Are you sure you want to delete
+    <strong style="color:var(--text);">{{ object }}</strong>?
+    This action cannot be undone.
+  </p>
+  <form method="post" style="display:flex;gap:.75rem;justify-content:center;">
+    {% csrf_token %}
+    <button type="submit" class="btn-hng btn-hng-danger">
+      <i class="bi bi-trash"></i> Yes, Delete
+    </button>
+    <a href="{{ cancel_url }}" class="btn-hng btn-hng-ghost">
+      <i class="bi bi-arrow-left"></i> Cancel
+    </a>
+  </form>
+</div>
+{% endblock %}
