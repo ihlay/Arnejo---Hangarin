@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}— Dashboard{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .bar-completed { background: #2d6a4f; }
+  .bar-inprogress { background: var(--accent2); }
+  .bar-pending { background: var(--accent); }
+</style>
+
+<div class="page-header fade-up">
+  <div>
+    <h1>Overview</h1>
+    <div class="sub">Live summary · Task & To-Do Manager</div>
+  </div>
+</div>
+
+<!-- Stat Cards Row 1 -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 fade-up fade-up-1">
+    <div class="stat-card yellow">
+      <div class="stat-label">Total Tasks</div>
+      <div class="stat-value" style="color:var(--accent)">{{ total_tasks }}</div>
+      <i class="bi bi-check2-square stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-2">
+    <div class="stat-card blue">
+      <div class="stat-label">In Progress</div>
+      <div class="stat-value" style="color:var(--accent2)">{{ in_progress }}</div>
+      <i class="bi bi-arrow-clockwise stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-3">
+    <div class="stat-card green">
+      <div class="stat-label">Completed</div>
+      <div class="stat-value" style="color:#2d6a4f">{{ completed }}</div>
+      <i class="bi bi-check-circle stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-4">
+    <div class="stat-card red">
+      <div class="stat-label">Overdue</div>
+      <div class="stat-value" style="color:var(--accent3)">{{ overdue }}</div>
+      <i class="bi bi-exclamation-triangle stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Stat Cards Row 2 -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 fade-up fade-up-1">
+    <div class="stat-card yellow">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value">{{ pending }}</div>
+      <i class="bi bi-hourglass-split stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-2">
+    <div class="stat-card blue">
+      <div class="stat-label">Sub Tasks</div>
+      <div class="stat-value" style="color:var(--accent2)">{{ total_subtasks }}</div>
+      <i class="bi bi-diagram-3 stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-3">
+    <div class="stat-card green">
+      <div class="stat-label">Notes</div>
+      <div class="stat-value" style="color:#2d6a4f">{{ total_notes }}</div>
+      <i class="bi bi-sticky stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 fade-up fade-up-4">
+    <div class="stat-card yellow">
+      <div class="stat-label">This Month</div>
+      <div class="stat-value" style="color:var(--accent)">{{ tasks_this_month }}</div>
+      <i class="bi bi-calendar-event stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Charts + Recent Tasks -->
+<div class="row g-3">
+  <!-- Status breakdown -->
+  <div class="col-md-4 fade-up fade-up-2">
+    <div class="hng-card h-100">
+      <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">
+        Status Breakdown
+      </div>
+      {% for item in status_data %}
+      <div style="margin-bottom:.85rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;">
+          <span style="font-size:.8rem;font-weight:600;">{{ item.status }}</span>
+          <span style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);">{{ item.count }}</span>
+        </div>
+        <div style="background:var(--bg3);border-radius:3px;height:6px;overflow:hidden;">
+          {% if total_tasks > 0 %}
+          <div class="{% if item.status == 'Completed' %}bar-completed{% elif item.status == 'In Progress' %}bar-inprogress{% else %}bar-pending{% endif %}" style="height:100%;border-radius:3px;transition:width .5s ease;" data-width="{% widthratio item.count total_tasks 100 %}"></div>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--muted);font-size:.8rem;">No tasks yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- By category -->
+  <div class="col-md-4 fade-up fade-up-3">
+    <div class="hng-card h-100">
+      <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">
+        Top Categories
+      </div>
+      {% for item in category_data %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:.85rem;">{{ item.category__name|default:"Uncategorized" }}</span>
+        <span style="font-family:var(--font-mono);font-size:.7rem;background:var(--bg3);padding:.15rem .5rem;border-radius:3px;color:var(--accent);">
+          {{ item.count }}
+        </span>
+      </div>
+      {% empty %}
+      <p style="color:var(--muted);font-size:.8rem;">No data yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- By priority -->
+  <div class="col-md-4 fade-up fade-up-4">
+    <div class="hng-card h-100">
+      <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;">
+        By Priority
+      </div>
+      {% for item in priority_data %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:.85rem;">{{ item.priority__name|default:"Unset" }}</span>
+        <span style="font-family:var(--font-mono);font-size:.7rem;background:var(--bg3);padding:.15rem .5rem;border-radius:3px;color:var(--accent2);">
+          {{ item.count }}
+        </span>
+      </div>
+      {% empty %}
+      <p style="color:var(--muted);font-size:.8rem;">No data yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="hng-card mt-3 fade-up">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">
+      Recent Tasks
+    </div>
+    <a href="{% url 'task-list' %}" class="btn-hng btn-hng-ghost btn-hng-sm">View All →</a>
+  </div>
+  <table class="hng-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>Deadline</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in recent_tasks %}
+      <tr>
+        <td style="font-weight:600;">{{ task.title|truncatechars:50 }}</td>
+        <td>
+          <span class="badge-status
+            {% if task.status == 'Completed' %}badge-completed
+            {% elif task.status == 'In Progress' %}badge-inprogress
+            {% else %}badge-pending{% endif %}">
+            {{ task.status }}
+          </span>
+        </td>
+        <td style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);">
+          {{ task.priority|default:"—" }}
+        </td>
+        <td style="font-size:.8rem;color:var(--muted);">{{ task.category|default:"—" }}</td>
+        <td style="font-family:var(--font-mono);font-size:.75rem;color:var(--muted);">
+          {% if task.deadline %}{{ task.deadline|date:"M d, Y" }}{% else %}—{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;">
+          No tasks yet. <a href="{% url 'task-add' %}" style="color:var(--accent);">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.querySelectorAll('[data-width]').forEach(el => {
+    el.style.width = el.dataset.width + '%';
+  });
+</script>
+{% endblock %}
