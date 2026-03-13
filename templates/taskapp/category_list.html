@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}— Categories{% endblock %}
+{% block topbar_title %}Categories{% endblock %}
+{% block content %}
+<div class="page-header fade-up">
+  <div>
+    <h1>Categories</h1>
+    <div class="sub">{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }} total</div>
+  </div>
+  <a href="{% url 'category-add' %}" class="btn-hng btn-hng-primary"><i class="bi bi-plus-lg"></i> Add Category</a>
+</div>
+
+<form method="get" class="search-bar fade-up">
+  <div class="search-input-wrap">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="Search categories..." class="hng-input" />
+  </div>
+  <button type="submit" class="btn-hng btn-hng-ghost"><i class="bi bi-search"></i> Search</button>
+  {% if q %}<a href="{% url 'category-list' %}" class="btn-hng btn-hng-ghost"><i class="bi bi-x"></i> Clear</a>{% endif %}
+</form>
+
+<div class="hng-card fade-up">
+  <table class="hng-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Tasks</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in categories %}
+      <tr>
+        <td style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);">{{ forloop.counter }}</td>
+        <td style="font-weight:600;">{{ cat.name }}</td>
+        <td>
+          <span style="font-family:var(--font-mono);font-size:.72rem;background:var(--bg3);padding:.15rem .5rem;border-radius:3px;color:var(--accent);">
+            {{ cat.task_count }}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;">
+            <a href="{% url 'category-edit' cat.pk %}" class="btn-hng btn-hng-ghost btn-hng-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'category-delete' cat.pk %}" class="btn-hng btn-hng-danger btn-hng-sm"><i class="bi bi-trash"></i></a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:3rem;color:var(--muted);">
+          No categories. <a href="{% url 'category-add' %}" style="color:var(--accent);">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}
